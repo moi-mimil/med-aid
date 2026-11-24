@@ -1,52 +1,62 @@
+import customtkinter as ctk  # for the general GUI
+from unidecode import unidecode  # for removing accents from the search bar input
+from data import (
+    give_condition,
+    give_symptoms,
+)  # for the list of conditions and their associated symptoms
 
-import customtkinter as ctk # for the general GUI
-from unidecode import unidecode # for removing accents from the search bar input
-from conditions import give_condition # for the list of conditions and their associated symptoms
+liste_symptomes = give_symptoms()
+assert type(liste_symptomes) == list, "liste_symptomes est forcément une liste"
+assert liste_symptomes, "liste_symptomes est vide"
+
+conditions = give_condition()
+assert type(conditions) == dict, "conditions est forcément un dictionnaire"
+assert conditions, "conditions est vide"
+
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
-app = ctk.CTk()
-app.geometry("1920x1080")
-app.title("MED AID")
+application = ctk.CTk()
 
-frame = ctk.CTkFrame(app)
-frame.pack(pady=20)
-
-symptom_list = [
-    "Fièvre", "Toux", "Fatigue", "Maux de tête",
-    "Essoufflement", "Mal de gorge",
-    "Perte du goût ou de l'odorat", "Nausées", "Vomissements",
-    "Diarrhée", "Douleurs musculaires ou corporelles", "Frissons",
-    "Écoulement nasal", "Congestion", "Douleurs thoraciques",
-    "Étourdissements", "Éruption cutanée", "Gonflement", "Douleurs articulaires",
-    "Douleurs abdominales", "Éternuements", "Démangeaisons", "Yeux rouges","Yeux larmoyants",
-    "Sifflements respiratoires", "Brûlures d'estomac", "Ballonnements", "Constipation",
-    "Douleurs à la miction", "Envies fréquentes d'uriner", "Sensibilité à la lumière", "Sensibilité au bruit",
-    "Douleurs cervicales"
-]
-
-conditions = give_condition()
+application.title("MED AID")
+application.geometry("1920x1080")
+# application.state("zoomed")
 
 
-selected_symptoms = []
+fenetre = ctk.CTkFrame(application)
+fenetre.pack(pady=20)
+
+# Frame for unselected symptoms
+fenetre_off = ctk.CTkFrame(fenetre)
+fenetre_off.pack(side="left", padx=10, pady=10)
+
+# Frame for selected symptoms
+fenetre_on = ctk.CTkFrame(fenetre)
+fenetre_on.pack(side="right", padx=10, pady=10)
 
 
-active_button = []
+sympotomes_actifs = []
+assert type(sympotomes_actifs) == list, "sympotomes_actifs est forcément une liste"
+
+
+bouton_actifs = []
+assert type(bouton_actifs) == list, "bouton_actifs est forcément une liste"
+
+
+boutons_conditions = []
+assert type(boutons_conditions) == list, "boutons_conditions est forcément une liste"
 
 # Search bar
-search_var = ctk.StringVar()
+recherche = ctk.StringVar()
 
-search_entry = ctk.CTkEntry(
-    app,
+barre_recherche = ctk.CTkEntry(
+    application,
     placeholder_text="recherche des symptomes ...",
-    textvariable=search_var,
-    width=300
+    textvariable=recherche,
+    width=300,
 )
-search_entry.pack(pady=20)
-
-
-
+barre_recherche.pack(pady=20)
 
 
 def toggle_symptom(symptom):
@@ -56,105 +66,231 @@ def toggle_symptom(symptom):
     If the symptom is already in selected_symptoms,
     remove it. Otherwise, add it.
     """
+    assert type(sympotomes_actifs) == list, "sympotomes_actifs est forcément une liste"
+    assert type(liste_symptomes) == list, "liste_symptomes est forcément une liste"
+    assert type(symptom) == str, "symtom est forcément un str"
+    # print(type(sympotomes_actifs))
+    # print(type(symptom))
 
-    if symptom in selected_symptoms:
-        selected_symptoms.remove(symptom)
-        print(f"Symptom '{symptom}' removed.")
-    else:
-        selected_symptoms.append(symptom)
-        print(f"Symptom '{symptom}' added.")
+    if symptom in sympotomes_actifs:
+        sympotomes_actifs.remove(symptom)
+        print(f"symptômes '{symptom}' enlevé.")
+
+    elif symptom in liste_symptomes:
+        sympotomes_actifs.append(symptom)
+        print(f"symptômes '{symptom}' ajouté.")
+        print("Selected symptoms:", sympotomes_actifs)
+
+    results_frame.pack_forget()  # Hide the results frame when symptoms are toggled.
 
     # Refresh the buttons so their colors reflect
     # the updated selection state.
     search()
 
-    print("Selected symptoms:", selected_symptoms)
-
 
 def search(*args):
     """
     Filters the symptom list according to the search bar
-    and creates a button for each matching symptom.
+    and separates selected and unselected symptoms.
     """
 
     # Remove all previously displayed buttons.
-    for widget in frame.winfo_children():
+    for widget in fenetre_off.winfo_children():
+        widget.destroy()
+
+    for widget in fenetre_on.winfo_children():
         widget.destroy()
 
     # Clear the list of old button references.
-    active_button.clear()
+    bouton_actifs.clear()
 
-    # Get the current search text and convert it to lowercase.
-    query = search_var.get().lower()
-    if not query:
-        search_symptom_list = ["cherchez un symptôme"]
-    else:
-        # Keep symptoms containing the search text.
-        search_symptom_list = [
-            symptom for symptom in symptom_list
-            if query in unidecode(symptom).lower()
-        ]
+    # Get the current search text, remove accents, and convert it to lowercase.
+    query = unidecode(recherche.get()).lower()
+
+    # Keep symptoms containing the search text.
+    search_symptom_list = [
+        symptom for symptom in liste_symptomes if query in unidecode(symptom).lower()
+    ]
 
     # Prioritise symptoms that START with the search text.
-    # For example, "Frissons" comes before "Essoufflement"
-    # when searching for "f".
     search_symptom_list.sort(
-        key=lambda symptom: not symptom.lower().startswith(query)
+        key=lambda symptom: not unidecode(symptom).lower().startswith(query)
     )
-    if len(search_symptom_list) > 21:
-        l= len(search_symptom_list)-21
-        del search_symptom_list[20:]
-        search_symptom_list.append(f"et {l} autres résultats...")
 
+    # Separate selected and unselected symptoms.
+    off_list = [
+        symptom for symptom in search_symptom_list if symptom not in sympotomes_actifs
+    ]
 
-    # Create a button for each matching symptom.
-    for symptom in search_symptom_list:
-        if symptom not in symptom_list:
-            check= False  # Skip if the symptom is not in the original list.
-        else:
-            check= True  # Proceed if the symptom is valid.
+    on_list = [symptom for symptom in liste_symptomes if symptom in sympotomes_actifs]
 
-        # Determine whether this symptom is already selected.
-        is_selected = symptom in selected_symptoms
-
-        # Create the button with a different colour depending
-        # on whether the symptom is selected or not.
-        button = ctk.CTkButton(frame,text=symptom,fg_color="green" if is_selected else None and check,hover_color="darkgreen" if is_selected else None and check,
-            # lambda s=symptom captures the current symptom.
-            # Without this, every button could end up using
-            # the last symptom in the loop.
-            command=lambda s=symptom: toggle_symptom(s) if check else None
+    # Display selected symptoms.
+    if not on_list:
+        message = ctk.CTkLabel(fenetre_on, text="Aucun symptôme sélectionné.")
+        message.pack(pady=5)
+    for symptom in on_list:
+        button = ctk.CTkButton(
+            fenetre_on,
+            text=symptom,
+            fg_color="green",
+            hover_color="darkgreen",
+            command=lambda s=symptom: toggle_symptom(s),
         )
 
         button.pack(pady=5)
+        bouton_actifs.append(button)
 
-        # Store the actual button widget.
-        active_button.append(button)
+    # Display unselected symptoms.
+    if not query:
+        message = ctk.CTkLabel(fenetre_off, text="Cherchez un symptôme...")
+        message.pack(pady=5)
+    else:
+        if len(off_list) > 21:
+            l = len(off_list) - 20
+            off_list = off_list[:20]
+            off_list.append(f"et {l} autres résultats...")
+
+        for symptom in off_list:
+            button = ctk.CTkButton(
+                fenetre_off, text=symptom, command=lambda s=symptom: toggle_symptom(s)
+            )
+
+            button.pack(pady=5)
+            bouton_actifs.append(button)
+
 
 def validate_symptoms():
     """
     Prints the list of selected symptoms to the console.
     This function is called when the "Validate Symptoms" button is clicked.
     """
-    if not selected_symptoms:
+    if not sympotomes_actifs:
         print("aucun symptôme sélectionné.")
     else:
-        print("symptômes sélectionnés:", selected_symptoms)
+        print("symptômes sélectionnés:", sympotomes_actifs)
         print("recherche des conditions possibles...")
 
+        research()
+
+
+def research():
+
+    matches = {}
+
+    selected = set(sympotomes_actifs)
+
+    if not selected:
+        return
+
+    for condition, helper in conditions.items():
+
+        condition_symptoms = set(helper["symptoms"])
+        wiki = helper["wikipedia"]
+
+        if not condition_symptoms:
+            continue
+
+        common = len(selected & condition_symptoms)
+
+        if common == 0:
+            continue
+
+        precision = common / len(selected)
+        recall = common / len(condition_symptoms)
+
+        f1 = 2 * (precision * recall) / (precision + recall)
+
+        matches[condition] = {
+            "wikipedia": wiki,
+            "common": common,
+            "precision": precision * 100,
+            "recall": recall * 100,
+            "score": f1 * 100,
+        }
+
+    matches = dict(
+        sorted(matches.items(), key=lambda item: item[1]["score"], reverse=True)
+    )
+
+    display_results(matches)
+
+
+def display_results(matches):
+    """
+    Displays the search results in the application.
+    """
+
+    # Ensure the results frame is visible only after the first search.
+    results_frame.pack(fill="both", expand=True, padx=20, pady=10)
+
+    # Clear previous results
+    for widget in results_frame.winfo_children():
+        widget.destroy()
+
+    # Sort by score, highest first
+    matches = dict(
+        sorted(matches.items(), key=lambda item: item[1]["score"], reverse=True)
+    )
+
+    # Display results
+    if not matches:
+        message = ctk.CTkLabel(
+            results_frame, text="Aucun résultat trouvé.", font=("Arial", 16)
+        )
+        message.pack(pady=20)
+        return
+
+    for condition, data in matches.items():
+
+        wiki = data["wikipedia"]
+        common = data["common"]
+        precision = data["precision"]
+        recall = data["recall"]
+        score = data["score"]
+
+        # Determine whether it's an exact match
+        perfect_match = precision == 100 and recall == 100
+
+        if perfect_match:
+            title = f"✓ {condition} - Correspondance parfaite"
+            color = "green"
+        else:
+            title = condition
+            color = None
+
+        # Container for each condition
+        condition_frame = ctk.CTkFrame(results_frame)
+        condition_frame.pack(fill="x", padx=10, pady=5)
+
+        # Condition name
+        label = ctk.CTkLabel(
+            condition_frame, text=title, font=("Arial", 16, "bold"), text_color=color
+        )
+        label.pack(pady=(10, 5))
+
+        # Matching information
+        details = (
+            f"{common} symptômes en commun\n"
+            f"Précision : {precision:.2f}%\n"
+            f"Couverture : {recall:.2f}%\n"
+            f"Score F1 : {score:.2f}%"
+        )
+
+        info = ctk.CTkLabel(condition_frame, text=details, font=("Arial", 12))
+        info.pack(pady=(0, 10))
+
+
 validate_button = ctk.CTkButton(
-    app,
-    text="Valider les symptômes",
-    command=validate_symptoms
+    application, text="Valider les symptômes", command=validate_symptoms
 )
 validate_button.pack(pady=10)
 
-
+results_frame = ctk.CTkScrollableFrame(application)
 
 # Call search whenever the contents of the search bar change.
-search_var.trace_add("write", search)
+recherche.trace_add("write", search)
 
 # Display the complete symptom list when the application starts.
 search()
 
-app.mainloop()
+application.mainloop()
