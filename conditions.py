@@ -1,5 +1,15 @@
 conditions = {
 
+    "test": {
+        "symptoms": ["Fièvre"],
+        "wikipedia": "https://fr.wikipedia.org/wiki/Test",
+        "treatment": (
+            "Le traitement dépend de la cause. "
+            "Un avis médical est recommandé pour déterminer "
+            "le traitement approprié."
+        )
+    },
+
 
     "Rhume": {
         "symptoms": [
@@ -362,3 +372,20 @@ conditions = {
 
 def give_condition():
     return conditions
+
+
+symptom_list = [
+    "Fièvre", "Toux", "Fatigue", "Maux de tête",
+    "Essoufflement", "Mal de gorge",
+    "Perte du goût ou de l'odorat", "Nausées", "Vomissements",
+    "Diarrhée", "Douleurs musculaires ou corporelles", "Frissons",
+    "Écoulement nasal", "Congestion", "Douleurs thoraciques",
+    "Étourdissements", "Éruption cutanée", "Gonflement", "Douleurs articulaires",
+    "Douleurs abdominales", "Éternuements", "Démangeaisons", "Yeux rouges","Yeux larmoyants",
+    "Sifflements respiratoires", "Brûlures d'estomac", "Ballonnements", "Constipation",
+    "Douleurs à la miction", "Envies fréquentes d'uriner", "Sensibilité à la lumière", "Sensibilité au bruit",
+    "Douleurs cervicales", "veriges", "tremblements", "coup de chaleur", "transpiration"
+]
+
+def give_symptoms():
+    return symptom_list
