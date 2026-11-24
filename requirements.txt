@@ -1,2 +1,2 @@
-customtkinter
-unidecode
+customtkinter >= 6.0.0
+unidecode >= 1.4.0
