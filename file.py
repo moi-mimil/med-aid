@@ -1,9 +1,11 @@
 import customtkinter as ctk  # for the general GUI
 from unidecode import unidecode  # for removing accents from the search bar input
+import webbrowser as w # pour ouvrir les pages wiki
 from data import (
     give_condition,
     give_symptoms,
 )  # for the list of conditions and their associated symptoms
+
 
 liste_symptomes = give_symptoms()
 assert type(liste_symptomes) == list, "liste_symptomes est forcément une liste"
@@ -57,6 +59,10 @@ barre_recherche = ctk.CTkEntry(
     width=300,
 )
 barre_recherche.pack(pady=20)
+
+
+def ouvr_lien(url):
+    w.open_new(url)
 
 
 def toggle_symptom(symptom):
@@ -279,6 +285,9 @@ def display_results(matches):
         info = ctk.CTkLabel(condition_frame, text=details, font=("Arial", 12))
         info.pack(pady=(0, 10))
 
+        link = ctk.CTkLabel(condition_frame, text="Lien Wikipedia", text_color="blue", cursor="hand2")
+        link.pack(pady=(0, 10))
+        link.bind("<Button-1>", lambda e, url=wiki: ouvr_lien(url))
 
 validate_button = ctk.CTkButton(
     application, text="Valider les symptômes", command=validate_symptoms
