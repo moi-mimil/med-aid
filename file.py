@@ -74,7 +74,7 @@ def toggle_symptom(symptom):
     """
     assert type(sympotomes_actifs) == list, "sympotomes_actifs est forcément une liste"
     assert type(liste_symptomes) == list, "liste_symptomes est forcément une liste"
-    assert type(symptom) == str, "symtom est forcément un str"
+    assert type(symptom) == str, "symptom est forcément un str"
     # print(type(sympotomes_actifs))
     # print(type(symptom))
 
@@ -117,7 +117,8 @@ def search(*args):
     search_symptom_list = [
         symptom for symptom in liste_symptomes if query in unidecode(symptom).lower()
     ]
-
+    assert type(search_symptom_list) == list, "search symptom list est forcément une liste"
+    
     # Prioritise symptoms that START with the search text.
     search_symptom_list.sort(
         key=lambda symptom: not unidecode(symptom).lower().startswith(query)
@@ -129,6 +130,9 @@ def search(*args):
     ]
 
     on_list = [symptom for symptom in liste_symptomes if symptom in sympotomes_actifs]
+
+    assert type(off_list) == list, "off list est forcémment une liste"
+    assert type(on_list) == list, "on_list est forcément une liste"
 
     # Display selected symptoms.
     if not on_list:
@@ -182,7 +186,8 @@ def validate_symptoms():
 def research():
 
     matches = {}
-
+    assert type(matches) == dict, "matches est forcément un dictionnaire"
+    
     selected = set(sympotomes_actifs)
 
     if not selected:
@@ -249,10 +254,28 @@ def display_results(matches):
     for condition, data in matches.items():
 
         wiki = data["wikipedia"]
+        #print(type(wiki))
+        assert type(wiki) == str, "wiki doit être un str"
+
+
         common = data["common"]
+        #print(type(common))
+        assert type(common) == int, " common doit être un int"
+
+
         precision = data["precision"]
+        #print(type(precision))
+        assert type(precision) == float, "precision doit être un float"
+
+
         recall = data["recall"]
+        #print(type(recall))
+        assert type(recall) == float, "recall doit être un float"
+
+
         score = data["score"]
+        #print(type(score))
+        assert type(score) == float, "score doit être un float"
 
         # Determine whether it's an exact match
         perfect_match = precision == 100 and recall == 100
