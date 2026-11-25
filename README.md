@@ -51,7 +51,7 @@ pip install -r requirements.txt
 python file.py
 ```
 
-> Sous Linux ou macOS, la commande peut être `python3`. La fenêtre s'ouvre agrandie grâce à `app.state("zoomed")`, qui n'est pris en charge que sous Windows : sur un autre système, supprimez cette ligne si une erreur apparaît.
+> Sous Linux ou macOS, la commande peut être `python3`.
 
 ## Utilisation
 
