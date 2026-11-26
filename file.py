@@ -38,8 +38,8 @@ fenetre_on = ctk.CTkFrame(fenetre)
 fenetre_on.pack(side="right", padx=10, pady=10)
 
 
-sympotomes_actifs = []
-assert type(sympotomes_actifs) == list, "sympotomes_actifs est forcément une liste"
+symptomes_actifs = []
+assert type(symptomes_actifs) == list, "sympotomes_actifs est forcément une liste"
 
 
 bouton_actifs = []
@@ -65,71 +65,68 @@ def ouvr_lien(url):
     w.open_new(url)
 
 
-def toggle_symptom(symptom):
+def activer_symptome(symptome):
     """
-    Selects or deselects a symptom.
+    Active ou désactive un symptome.
 
-    If the symptom is already in selected_symptoms,
-    remove it. Otherwise, add it.
+    Si le symptome est dans les sympotomes_actifs, on l'enleve, sinon on l'ajoute
     """
-    assert type(sympotomes_actifs) == list, "sympotomes_actifs est forcément une liste"
+    assert type(symptomes_actifs) == list, "sympotomes_actifs est forcément une liste"
     assert type(liste_symptomes) == list, "liste_symptomes est forcément une liste"
-    assert type(symptom) == str, "symptom est forcément un str"
+    assert type(symptome) == str, "symptome est forcément un str"
     # print(type(sympotomes_actifs))
     # print(type(symptom))
 
-    if symptom in sympotomes_actifs:
-        sympotomes_actifs.remove(symptom)
-        print(f"symptômes '{symptom}' enlevé.")
+    if symptome in symptomes_actifs:
+        symptomes_actifs.remove(symptome)
+        print(f"symptômes '{symptome}' enlevé.")
 
-    elif symptom in liste_symptomes:
-        sympotomes_actifs.append(symptom)
-        print(f"symptômes '{symptom}' ajouté.")
-        print("Selected symptoms:", sympotomes_actifs)
+    elif symptome in liste_symptomes: #pour n'ajouter que les symptomes valides
+        symptomes_actifs.append(symptome)
+        print(f"symptômes '{symptome}' ajouté.")
+        print("Selected symptoms:", symptomes_actifs)
 
-    results_frame.pack_forget()  # Hide the results frame when symptoms are toggled.
+    fenetre_resultats.pack_forget()
 
-    # Refresh the buttons so their colors reflect
-    # the updated selection state.
     search()
 
 
 def search(*args):
     """
-    Filters the symptom list according to the search bar
-    and separates selected and unselected symptoms.
+    Filtre la liste de symptomes par la recherche de l'utilisateur
+    et sépare les symptomes actifs des non-actifs
     """
 
-    # Remove all previously displayed buttons.
+    # Enleve les anciens resultat
     for widget in fenetre_off.winfo_children():
         widget.destroy()
 
     for widget in fenetre_on.winfo_children():
         widget.destroy()
 
-    # Clear the list of old button references.
+    # Enleve les anciens boutons actifs
     bouton_actifs.clear()
 
-    # Get the current search text, remove accents, and convert it to lowercase.
-    query = unidecode(recherche.get()).lower()
+    # mets la recherche en minuscule et enleve les accents
+    requete = unidecode(recherche.get()).lower()
 
-    # Keep symptoms containing the search text.
-    search_symptom_list = [
-        symptom for symptom in liste_symptomes if query in unidecode(symptom).lower()
+    # Garde les bons symptomes
+    liste_symptomes_recherche = [
+        symptome for symptome in liste_symptomes if requete in unidecode(symptome).lower()
     ]
-    assert type(search_symptom_list) == list, "search symptom list est forcément une liste"
-    
+    assert type(liste_symptomes_recherche) == list, "liste_symptomes_recherche list est forcément une liste"
+
     # Prioritise symptoms that START with the search text.
-    search_symptom_list.sort(
-        key=lambda symptom: not unidecode(symptom).lower().startswith(query)
+    liste_symptomes_recherche.sort(
+        key=lambda symptome: not unidecode(symptome).lower().startswith(requete)
     )
 
     # Separate selected and unselected symptoms.
     off_list = [
-        symptom for symptom in search_symptom_list if symptom not in sympotomes_actifs
+        symptome for symptome in liste_symptomes_recherche if symptome not in symptomes_actifs
     ]
 
-    on_list = [symptom for symptom in liste_symptomes if symptom in sympotomes_actifs]
+    on_list = [symptome for symptome in liste_symptomes if symptome in symptomes_actifs]
 
     assert type(off_list) == list, "off list est forcémment une liste"
     assert type(on_list) == list, "on_list est forcément une liste"
@@ -138,129 +135,129 @@ def search(*args):
     if not on_list:
         message = ctk.CTkLabel(fenetre_on, text="Aucun symptôme sélectionné.")
         message.pack(pady=5)
-    for symptom in on_list:
+    for symptome in on_list:
         button = ctk.CTkButton(
             fenetre_on,
-            text=symptom,
+            text=symptome,
             fg_color="green",
             hover_color="darkgreen",
-            command=lambda s=symptom: toggle_symptom(s),
+            command=lambda s=symptome: activer_symptome(s),
         )
 
         button.pack(pady=5)
         bouton_actifs.append(button)
 
     # Display unselected symptoms.
-    if not query:
+    if not requete:
         message = ctk.CTkLabel(fenetre_off, text="Cherchez un symptôme...")
         message.pack(pady=5)
     else:
         if len(off_list) > 21:
             l = len(off_list) - 20
-            off_list = off_list[:20]
+            off_list = off_list[:20] #pour ne garder visible que les 20 premiers
             off_list.append(f"et {l} autres résultats...")
 
-        for symptom in off_list:
+        for symptome in off_list:
             button = ctk.CTkButton(
-                fenetre_off, text=symptom, command=lambda s=symptom: toggle_symptom(s)
+                fenetre_off, text=symptome, command=lambda s=symptome: activer_symptome(s)
             )
 
             button.pack(pady=5)
             bouton_actifs.append(button)
 
 
-def validate_symptoms():
+def valider_symtomes():
     """
-    Prints the list of selected symptoms to the console.
-    This function is called when the "Validate Symptoms" button is clicked.
+    Affiche la liste des symptomes dans la console uniquement puis appelle la fontion suivante pour l'affichage
+    Cette fonction s'active avec le bouton "valider les symptomes
     """
-    if not sympotomes_actifs:
+    if not symptomes_actifs:
         print("aucun symptôme sélectionné.")
     else:
-        print("symptômes sélectionnés:", sympotomes_actifs)
+        print("symptômes sélectionnés:", symptomes_actifs)
         print("recherche des conditions possibles...")
 
-        research()
+        recherche_fonct()
 
 
-def research():
+def recherche_fonct():
 
-    matches = {}
-    assert type(matches) == dict, "matches est forcément un dictionnaire"
-    
-    selected = set(sympotomes_actifs)
+    matchs = {}
+    assert type(matchs) == dict, "matchs est forcément un dictionnaire"
 
-    if not selected:
+    selectiones = set(symptomes_actifs)
+
+    if not selectiones:
         return
 
-    for condition, helper in conditions.items():
+    for condition, aide in conditions.items():
 
-        condition_symptoms = set(helper["symptoms"])
-        wiki = helper["wikipedia"]
+        symptomes_condition = set(aide["symptoms"])
+        wiki = aide["wikipedia"]
 
-        if not condition_symptoms:
+        if not symptomes_condition:
             continue
 
-        common = len(selected & condition_symptoms)
+        commun = len(selectiones & symptomes_condition)
 
-        if common == 0:
+        if commun == 0:
             continue
 
-        precision = common / len(selected)
-        recall = common / len(condition_symptoms)
+        precision = commun / len(selectiones)
+        rappel = commun / len(symptomes_condition)
 
-        f1 = 2 * (precision * recall) / (precision + recall)
+        f1 = 2 * (precision * rappel) / (precision + rappel)
 
-        matches[condition] = {
+        matchs[condition] = {
             "wikipedia": wiki,
-            "common": common,
+            "commun": commun,
             "precision": precision * 100,
-            "recall": recall * 100,
+            "rappel": rappel * 100,
             "score": f1 * 100,
         }
 
-    matches = dict(
-        sorted(matches.items(), key=lambda item: item[1]["score"], reverse=True)
+    matchs = dict(
+        sorted(matchs.items(), key=lambda item: item[1]["score"], reverse=True)
     )
 
-    display_results(matches)
+    afficher_resultats(matchs)
 
 
-def display_results(matches):
+def afficher_resultats(matchs):
     """
-    Displays the search results in the application.
+    Afficher les resultats de recherche dans l'application
     """
 
-    # Ensure the results frame is visible only after the first search.
-    results_frame.pack(fill="both", expand=True, padx=20, pady=10)
+    # Verifie que les resultats ne s'affichent qu'apres le bouton cliqué.
+    fenetre_resultats.pack(fill="both", expand=True, padx=20, pady=10)
 
-    # Clear previous results
-    for widget in results_frame.winfo_children():
+    # Vide les résutats precedents
+    for widget in fenetre_resultats.winfo_children():
         widget.destroy()
 
     # Sort by score, highest first
-    matches = dict(
-        sorted(matches.items(), key=lambda item: item[1]["score"], reverse=True)
+    matchs = dict(
+        sorted(matchs.items(), key=lambda item: item[1]["score"], reverse=True)
     )
 
     # Display results
-    if not matches:
+    if not matchs:
         message = ctk.CTkLabel(
-            results_frame, text="Aucun résultat trouvé.", font=("Arial", 16)
+            fenetre_resultats, text="Aucun résultat trouvé.", font=("Arial", 16)
         )
         message.pack(pady=20)
         return
 
-    for condition, data in matches.items():
+    for condition, data in matchs.items():
 
         wiki = data["wikipedia"]
         #print(type(wiki))
         assert type(wiki) == str, "wiki doit être un str"
 
 
-        common = data["common"]
-        #print(type(common))
-        assert type(common) == int, " common doit être un int"
+        commun = data["commun"]
+        #print(type(commun))
+        assert type(commun) == int, " commun doit être un int"
 
 
         precision = data["precision"]
@@ -268,9 +265,9 @@ def display_results(matches):
         assert type(precision) == float, "precision doit être un float"
 
 
-        recall = data["recall"]
-        #print(type(recall))
-        assert type(recall) == float, "recall doit être un float"
+        rappel = data["rappel"]
+        #print(type(rappel))
+        assert type(rappel) == float, "rappel doit être un float"
 
 
         score = data["score"]
@@ -278,9 +275,9 @@ def display_results(matches):
         assert type(score) == float, "score doit être un float"
 
         # Determine whether it's an exact match
-        perfect_match = precision == 100 and recall == 100
+        match_parfait = precision == 100 and rappel == 100
 
-        if perfect_match:
+        if match_parfait:
             title = f"✓ {condition} - Correspondance parfaite"
             color = "green"
         else:
@@ -288,7 +285,7 @@ def display_results(matches):
             color = None
 
         # Container for each condition
-        condition_frame = ctk.CTkFrame(results_frame)
+        condition_frame = ctk.CTkFrame(fenetre_resultats)
         condition_frame.pack(fill="x", padx=10, pady=5)
 
         # Condition name
@@ -299,9 +296,9 @@ def display_results(matches):
 
         # Matching information
         details = (
-            f"{common} symptômes en commun\n"
+            f"{commun} symptômes en commun\n"
             f"Précision : {precision:.2f}%\n"
-            f"Couverture : {recall:.2f}%\n"
+            f"Couverture : {rappel:.2f}%\n"
             f"Score F1 : {score:.2f}%"
         )
 
@@ -313,11 +310,11 @@ def display_results(matches):
         link.bind("<Button-1>", lambda e, url=wiki: ouvr_lien(url))
 
 validate_button = ctk.CTkButton(
-    application, text="Valider les symptômes", command=validate_symptoms
+    application, text="Valider les symptômes", command=valider_symtomes
 )
 validate_button.pack(pady=10)
 
-results_frame = ctk.CTkScrollableFrame(application)
+fenetre_resultats = ctk.CTkScrollableFrame(application)
 
 # Call search whenever the contents of the search bar change.
 recherche.trace_add("write", search)
