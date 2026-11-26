@@ -1,10 +1,10 @@
-import customtkinter as ctk  # for the general GUI
-from unidecode import unidecode  # for removing accents from the search bar input
+import customtkinter as ctk  # Pour l'affichage general
+from unidecode import unidecode  # Pour enllever les accents en francais
 import webbrowser as w # pour ouvrir les pages wiki
 from data import (
     give_condition,
     give_symptoms,
-)  # for the list of conditions and their associated symptoms
+)  #Pour avoir la liste de symptomes et de conditions depuis l'autre fichier
 
 
 liste_symptomes = give_symptoms()
@@ -29,11 +29,11 @@ application.geometry("1920x1080")
 fenetre = ctk.CTkFrame(application)
 fenetre.pack(pady=20)
 
-# Frame for unselected symptoms
+# Fenetre des symptomes non selectionnes
 fenetre_off = ctk.CTkFrame(fenetre)
 fenetre_off.pack(side="left", padx=10, pady=10)
 
-# Frame for selected symptoms
+# Fenetre pour les symptomes selectionnes
 fenetre_on = ctk.CTkFrame(fenetre)
 fenetre_on.pack(side="right", padx=10, pady=10)
 
@@ -49,7 +49,7 @@ assert type(bouton_actifs) == list, "bouton_actifs est forcément une liste"
 boutons_conditions = []
 assert type(boutons_conditions) == list, "boutons_conditions est forcément une liste"
 
-# Search bar
+# Bar de recherche
 recherche = ctk.StringVar()
 
 barre_recherche = ctk.CTkEntry(
@@ -116,12 +116,12 @@ def search(*args):
     ]
     assert type(liste_symptomes_recherche) == list, "liste_symptomes_recherche list est forcément une liste"
 
-    # Prioritise symptoms that START with the search text.
+    # Priorise les symptomes qui commencent par la recherche
     liste_symptomes_recherche.sort(
         key=lambda symptome: not unidecode(symptome).lower().startswith(requete)
     )
 
-    # Separate selected and unselected symptoms.
+    # Separe les symptomes selectionnes des non selectionnes
     off_list = [
         symptome for symptome in liste_symptomes_recherche if symptome not in sympotomes_actifs
     ]
@@ -131,7 +131,7 @@ def search(*args):
     assert type(off_list) == list, "off list est forcémment une liste"
     assert type(on_list) == list, "on_list est forcément une liste"
 
-    # Display selected symptoms.
+    # Affiche les symptomes selectionnes dans leur propre fenetre
     if not on_list:
         message = ctk.CTkLabel(fenetre_on, text="Aucun symptôme sélectionné.")
         message.pack(pady=5)
@@ -147,7 +147,7 @@ def search(*args):
         button.pack(pady=5)
         bouton_actifs.append(button)
 
-    # Display unselected symptoms.
+    # Affiche les symptomes non selectionnes dans leur propre fenetre
     if not requete:
         message = ctk.CTkLabel(fenetre_off, text="Cherchez un symptôme...")
         message.pack(pady=5)
@@ -235,12 +235,12 @@ def afficher_resultats(matchs):
     for widget in fenetre_resultats.winfo_children():
         widget.destroy()
 
-    # Sort by score, highest first
+    # Trie par score, ordre decroissant (du plus)
     matchs = dict(
         sorted(matchs.items(), key=lambda item: item[1]["score"], reverse=True)
     )
 
-    # Display results
+    # Affiche les resultats
     if not matchs:
         message = ctk.CTkLabel(
             fenetre_resultats, text="Aucun résultat trouvé.", font=("Arial", 16)
@@ -274,7 +274,7 @@ def afficher_resultats(matchs):
         #print(type(score))
         assert type(score) == float, "score doit être un float"
 
-        # Determine whether it's an exact match
+        # Determine les matchs parfaits
         match_parfait = precision == 100 and rappel == 100
 
         if match_parfait:
@@ -284,17 +284,17 @@ def afficher_resultats(matchs):
             title = condition
             color = None
 
-        # Container for each condition
+        # Conteneurs pour chaque condition
         condition_frame = ctk.CTkFrame(results_frame)
         condition_frame.pack(fill="x", padx=10, pady=5)
 
-        # Condition name
+        # Nom des condition
         label = ctk.CTkLabel(
             condition_frame, text=title, font=("Arial", 16, "bold"), text_color=color
         )
         label.pack(pady=(10, 5))
 
-        # Matching information
+        # Information correspondantes
         details = (
             f"{common} symptômes en commun\n"
             f"Précision : {precision:.2f}%\n"
@@ -316,10 +316,10 @@ validate_button.pack(pady=10)
 
 results_frame = ctk.CTkScrollableFrame(application)
 
-# Call search whenever the contents of the search bar change.
+# Appelle la fonction de recherche a chaque fois que la barre de recherche change de valeur
 recherche.trace_add("write", search)
 
-# Display the complete symptom list when the application starts.
+# Affiche la liste complete des symptomes
 search()
 
 application.mainloop()
