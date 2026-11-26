@@ -2,3 +2,4 @@ customtkinter >= 6.0.0
 unidecode >= 1.4.0
 #data -> data est un autre fichier python, qui n'est pas pris en compte par pip
 #webbreowser est une libraire prise en compte par python
+ 
